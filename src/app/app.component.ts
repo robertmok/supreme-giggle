@@ -50,6 +50,13 @@ export class AppComponent {
   llmModels = ["gemma:2b", "orca-mini:3b", "llama2"];
   aiMessageBuffer = "";
   loading = false;
+  simHistory: any[] = [];
+  simGemmaHistory: any[] = [];
+  simOrcaHistory: any [] = [];
+  currentModel = "gemma:2b";
+  gemma = "gemma:2b";
+  orca = "orca-mini:3b";
+  startAiSim = false;
 
   ngOnInit() {
     //this.startConnection();
@@ -120,11 +127,38 @@ export class AppComponent {
       }
       else if (message && message.done === true)
       {
-        this.aiHistory.push({
-          role: "assistant",
+        this.simHistory.push({
+          model: message.model,
           content: this.aiMessageBuffer
         });
-        this.aiMessageBuffer = ""; //reset
+
+        if (message.model === this.gemma) { //orca asked or first ask
+          this.simGemmaHistory.push({
+            role: "assistant",
+            content: this.aiMessageBuffer
+          });
+          this.simOrcaHistory.push({ // gemma response is user for orca
+            role: "user",
+            content: this.aiMessageBuffer
+          });
+          this.aiMessageBuffer = ""; //reset
+
+          //send to orca
+          this.sendToAiSim(this.orca, this.simOrcaHistory);
+        } else if (message.model === this.orca) { //gemma asked
+          this.simGemmaHistory.push({ //orca response is user for gemma
+            role: "user",
+            content: this.aiMessageBuffer
+          });
+          this.simOrcaHistory.push({
+            role: "assistant",
+            content: this.aiMessageBuffer
+          });
+          this.aiMessageBuffer = ""; //reset
+
+          //send to gemma
+          this.sendToAiSim(this.gemma, this.simGemmaHistory);
+        }
       }
     });
   }
@@ -306,6 +340,18 @@ export class AppComponent {
     }
   }
 
+  async startSim() {
+    this.startAiSim = true;    
+    //ask gemma
+    await this.aiConnection.invoke('SendAiMessage', 
+      [{
+        role: "user",
+        content: "Hello my name is Orca, can you start a casual conversation with me?"
+      }], 
+      this.gemma
+    );
+  }
+
   async sendToAI(message: string, model: string) {
     if (this.loading === false) {
       try {
@@ -322,5 +368,23 @@ export class AppComponent {
         console.error(err);
       }
     }
+  }
+
+  async sendToAiSim(model: string, history: any[]) {
+    if (this.loading === false && this.startAiSim === true) {
+      try {
+        this.loading = true;
+        this.currentModel = model;
+        console.log('sim model: ' + model);
+        console.log(history);
+        await this.aiConnection.invoke('SendAiMessage', history, model);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  }
+
+  stopSim() {
+    this.startAiSim = false;
   }
 }
