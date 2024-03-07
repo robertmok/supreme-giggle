@@ -35,6 +35,20 @@
     max-width: 9.2rem;
     float: right;
   }
+
+  .loading:after {
+    position: absolute;
+    margin-left: .1rem;
+    content: ' ...';
+    animation: loading steps(4) 2s infinite;
+    clip: rect(auto, 0px, auto, auto);
+  }
+
+  @keyframes loading {
+    to {
+      clip: rect(auto, 20px, auto, auto);
+    }
+  }
 </style>
 
 <main class="main">
@@ -187,6 +201,37 @@
     </div>
     <input type="text" #groupMessage placeholder="Enter a message"/>
     <button (click)="sendGroupMessage(groupMessage.value)">Send Message</button>
+  </div>
+  <br>
+  <hr>
+
+  <div>
+    <h3>AI Chat</h3>
+    <select #selectLLM>
+      <option selected [value]="''">Select a AI Model to chat with</option>
+      <option *ngFor="let model of llmModels" [value]="model">
+        {{ model }}
+      </option>
+    </select>
+    <div style="width: 100%; height: 300px; border: 2px solid black; overflow: auto;" #chat>
+      <div *ngFor="let msg of aiHistory">
+        <p style="margin: 5px;">
+          <strong style="color: blue;">
+            <span *ngIf="msg.role === 'assistant'">{{ msg.model }}</span> {{ msg.role }}: 
+          </strong>
+          <span>{{ msg.content }}</span>
+        </p>
+      </div>
+      <p [class.loading]="loading === true" style="margin: 5px;"></p>
+      <p *ngIf="aiMessageBuffer !== ''" style="margin: 5px;">
+        <strong style="color: blue;">
+          assistant: 
+        </strong>
+        <span>{{ aiMessageBuffer }}</span>
+      </p>
+    </div>
+    <input type="text" #aiChatMessage placeholder="Enter a message"/>
+    <button (click)="sendToAI(aiChatMessage.value, selectLLM.value)" [disabled]="loading">Send Message</button>
   </div>
 </main>
 <router-outlet />

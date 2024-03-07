@@ -41,9 +41,19 @@ export class AppComponent {
     .withAutomaticReconnect()
     .configureLogging(signalR.LogLevel.Information)
     .build();
-  
+  aiConnection = new signalR.HubConnectionBuilder()
+    .withUrl('https://localhost:7202/hub')
+    .withAutomaticReconnect()
+    .configureLogging(signalR.LogLevel.Information)
+    .build();
+  aiHistory: any[] = [];
+  llmModels = ["gemma:2b", "orca-mini:3b", "llama2"];
+  aiMessageBuffer = "";
+  loading = false;
+
   ngOnInit() {
-    this.startConnection();
+    //this.startConnection();
+    this.startAiConnection();
 
     this.connection.onreconnected((connectionId) => {
       console.assert(
@@ -98,6 +108,25 @@ export class AppComponent {
     this.connection.on('ReceiveGroups', (groups: string) => {
       this.groupsList = JSON.parse(groups);
     });
+
+    this.aiConnection.on('ReceiveAiMessage', (message: any) => {
+      console.log(message);
+      if (message) {
+        this.loading = false;
+      }
+      if (message && message.done === false)
+      {
+        this.aiMessageBuffer += message.message.content;
+      }
+      else if (message && message.done === true)
+      {
+        this.aiHistory.push({
+          role: "assistant",
+          content: this.aiMessageBuffer
+        });
+        this.aiMessageBuffer = ""; //reset
+      }
+    });
   }
 
   async startConnection() {
@@ -112,6 +141,16 @@ export class AppComponent {
       console.log(err);
       this.serverMessage = JSON.stringify(err);
       setTimeout(this.startConnection, 5000);
+    }
+  }
+
+  async startAiConnection() {
+    try {
+      await this.aiConnection.start();
+      console.log('SignalR Connected.');
+    } catch (err) {
+      console.log(err);
+      setTimeout(this.startAiConnection, 5000);
     }
   }
 
@@ -264,6 +303,24 @@ export class AppComponent {
     } catch (err) {
       console.error(err);
       this.serverMessage = JSON.stringify(err);
+    }
+  }
+
+  async sendToAI(message: string, model: string) {
+    if (this.loading === false) {
+      try {
+        this.loading = true;
+        let llmModel = model !== '' ? model : null;
+        this.aiHistory.push(
+          {
+            role: "user",
+            content: message
+          }
+        );
+        await this.aiConnection.invoke('SendAiMessage', this.aiHistory, llmModel);
+      } catch (err) {
+        console.error(err);
+      }
     }
   }
 }
