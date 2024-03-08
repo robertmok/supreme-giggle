@@ -121,43 +121,45 @@ export class AppComponent {
       if (message) {
         this.loading = false;
       }
-      if (message && message.done === false)
-      {
-        this.aiMessageBuffer += message.message.content;
-      }
-      else if (message && message.done === true)
-      {
-        this.simHistory.push({
-          model: message.model,
-          content: this.aiMessageBuffer
-        });
+      if (this.startAiSim === true) {
+        if (message && message.done === false)
+        {
+          this.aiMessageBuffer += message.message.content;
+        }
+        else if (message && message.done === true)
+        {
+          this.simHistory.push({
+            model: message.model,
+            content: this.aiMessageBuffer
+          });
 
-        if (message.model === this.gemma) { //orca asked or first ask
-          this.simGemmaHistory.push({
-            role: "assistant",
-            content: this.aiMessageBuffer
-          });
-          this.simOrcaHistory.push({ // gemma response is user for orca
-            role: "user",
-            content: this.aiMessageBuffer
-          });
-          this.aiMessageBuffer = ""; //reset
+          if (message.model === this.gemma) { //orca asked or first ask
+            this.simGemmaHistory.push({
+              role: "assistant",
+              content: this.aiMessageBuffer
+            });
+            this.simOrcaHistory.push({ // gemma response is user for orca
+              role: "user",
+              content: this.aiMessageBuffer
+            });
+            this.aiMessageBuffer = ""; //reset
 
-          //send to orca
-          this.sendToAiSim(this.orca, this.simOrcaHistory);
-        } else if (message.model === this.orca) { //gemma asked
-          this.simGemmaHistory.push({ //orca response is user for gemma
-            role: "user",
-            content: this.aiMessageBuffer
-          });
-          this.simOrcaHistory.push({
-            role: "assistant",
-            content: this.aiMessageBuffer
-          });
-          this.aiMessageBuffer = ""; //reset
+            //send to orca
+            this.sendToAiSim(this.orca, this.simOrcaHistory);
+          } else if (message.model === this.orca) { //gemma asked
+            this.simGemmaHistory.push({ //orca response is user for gemma
+              role: "user",
+              content: this.aiMessageBuffer
+            });
+            this.simOrcaHistory.push({
+              role: "assistant",
+              content: this.aiMessageBuffer
+            });
+            this.aiMessageBuffer = ""; //reset
 
-          //send to gemma
-          this.sendToAiSim(this.gemma, this.simGemmaHistory);
+            //send to gemma
+            this.sendToAiSim(this.gemma, this.simGemmaHistory);
+          }
         }
       }
     });
@@ -341,12 +343,13 @@ export class AppComponent {
   }
 
   async startSim() {
-    this.startAiSim = true;    
+    this.startAiSim = true;
+    this.loading = true;
     //ask gemma
     await this.aiConnection.invoke('SendAiMessage', 
       [{
         role: "user",
-        content: "Hello my name is Orca, can you start a casual conversation with me?"
+        content: "Hello my name is Orca, can you start a casual fun conversation with me and try to keep the conversation going?"
       }], 
       this.gemma
     );
@@ -386,5 +389,10 @@ export class AppComponent {
 
   stopSim() {
     this.startAiSim = false;
+    this.loading = false;
+    this.aiMessageBuffer = '';
+    this.simGemmaHistory = [];
+    this.simOrcaHistory = [];
+    this.simHistory = [];
   }
 }

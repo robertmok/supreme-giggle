@@ -36,18 +36,18 @@
     float: right;
   }
 
-  .loading:after {
-    position: absolute;
-    margin-left: .1rem;
-    content: ' ...';
-    animation: loading steps(4) 2s infinite;
-    clip: rect(auto, 0px, auto, auto);
+  .loading::after {
+    display: inline-block;
+    animation: dotty steps(1,end) 1s infinite;
+    content: '';
   }
-
-  @keyframes loading {
-    to {
-      clip: rect(auto, 20px, auto, auto);
-    }
+  
+  @keyframes dotty {
+    0%   { content: ''; }
+    25%  { content: '.'; }
+    50%  { content: '..'; }
+    75%  { content: '...'; }
+    100% { content: ''; }
   }
 </style>
 
@@ -99,11 +99,11 @@
           <clipPath id="a"><path fill="#fff" d="M0 0h982v239H0z" /></clipPath>
         </defs>
       </svg>
-      <h1>CChat</h1>
+      <!-- <h1>CChat</h1>
       <br>
-      <p style="background-color: skyblue;"><strong>Server Alert: </strong> {{ serverMessage }}</p>
+      <p style="background-color: skyblue;"><strong>Server Alert: </strong> {{ serverMessage }}</p> -->
     </div>
-    <br>
+    <!-- <br>
     <div>
       <p style="font-weight: bold;">List of Users Online:</p>
       <ul *ngFor="let user of usersList">
@@ -113,15 +113,15 @@
           ({{ user.ConnectionId}})
         </li>
       </ul>
-      <input type="text" #user placeholder="Enter your name"/>
+      <!-- <input type="text" #user placeholder="Enter your name"/>
       <button (click)="saveUsername(user.value)">Save</button>
       <br>
-    </div>
-    <br>
-    <hr>
+    </div> -->
+    <!-- <br>
+    <hr> -->
   </div>
 
-  <div>
+  <!-- <div>
     <h3>Global Chat</h3>
     <div style="width: 100%; height: 300px; border: 2px solid black; overflow: auto;" #chat>
       <div *ngFor="let msg of messageHistory">
@@ -234,12 +234,12 @@
     <button (click)="sendToAI(aiChatMessage.value, selectLLM.value)" [disabled]="loading">Send Message</button>
   </div>
   <br>
-  <hr>
+  <hr> -->
 
   <div>
     <h3>AI Simulation Chat</h3>
     <p *ngIf="startAiSim" style="background-color: lightgreen;">Simulation in progress ...</p>
-    <div style="width: 100%; height: 300px; border: 2px solid black; overflow: auto;" #chat>
+    <div style="width: 100%; height: 430px; border: 2px solid black; overflow: auto;" #chat [scrollTop]="chat.scrollHeight">
       <div *ngFor="let msg of simHistory">
         <p style="margin: 5px;">
           <strong style="color: blue;">
@@ -251,7 +251,7 @@
       <p [class.loading]="loading === true" style="margin: 5px;"></p>
       <p *ngIf="aiMessageBuffer !== ''" style="margin: 5px;">
         <strong style="color: blue;">
-          {{ currentModel }}
+          {{ currentModel }}: 
         </strong>
         <span>{{ aiMessageBuffer }}</span>
       </p>
