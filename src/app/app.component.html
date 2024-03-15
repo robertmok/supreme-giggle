@@ -238,6 +238,13 @@
 
   <div>
     <h3>AI Simulation Chat</h3>
+    <h5>System Behaviour Config</h5>
+    <label>Set Gemma LLM Behaviour:</label>
+    <input #gemmaBehaviour style="width: 100%;" type="text" placeholder="enter system behaviour" [value]="defaultGemmaBehaviour">
+    <br><br>
+    <label>Set Orca LLM Behaviour:</label>
+    <input #orcaBehaviour style="width: 100%;" type="text" placeholder="enter system behaviour" [value]="defaultOrcaBehaviour">
+    <br><br>
     <p *ngIf="startAiSim" style="background-color: lightgreen;">Simulation in progress ...</p>
     <div style="width: 100%; height: 430px; border: 2px solid black; overflow: auto;" #chat [scrollTop]="chat.scrollHeight">
       <div *ngFor="let msg of simHistory">
@@ -256,7 +263,7 @@
         <span>{{ aiMessageBuffer }}</span>
       </p>
     </div>
-    <button (click)="startSim()">Start Simulation</button>
+    <button (click)="startSim(gemmaBehaviour.value, orcaBehaviour.value)">Start Simulation</button>
     <button (click)="stopSim()">Stop Simulation</button>
   </div>
 </main>

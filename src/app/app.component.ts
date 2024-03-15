@@ -57,6 +57,8 @@ export class AppComponent {
   gemma = "gemma:2b";
   orca = "orca-mini:3b";
   startAiSim = false;
+  defaultGemmaBehaviour = "Your name is Gemma, introduce yourself as such and start a casual fun conversation. Try to keep the conversation going.";
+  defaultOrcaBehaviour = "Your name is Orca, introduce yourself as such and start a casual fun conversation. Try to keep the conversation going.";
 
   ngOnInit() {
     //this.startConnection();
@@ -117,9 +119,10 @@ export class AppComponent {
     });
 
     this.aiConnection.on('ReceiveAiMessage', (message: any) => {
-      console.log(message);
+      //console.log(message);
       if (message) {
         this.loading = false;
+        this.currentModel = message.model;
       }
       if (this.startAiSim === true) {
         if (message && message.done === false)
@@ -342,17 +345,28 @@ export class AppComponent {
     }
   }
 
-  async startSim() {
+  async startSim(gemmaBehaviour: string | null, orcaBehaviour: string | null) {
     this.startAiSim = true;
     this.loading = true;
-    //ask gemma
+    //set Orca behaviour
+    this.simOrcaHistory.push({
+      role: "system",
+      content: orcaBehaviour ?? this.defaultOrcaBehaviour
+    });
+    //set gemma behaviour
+    this.simGemmaHistory.push({
+      role: "system",
+      content: gemmaBehaviour ?? this.defaultGemmaBehaviour
+    });
+    //prompt gemma first
     await this.aiConnection.invoke('SendAiMessage', 
       [{
-        role: "user",
-        content: "Hello my name is Orca, can you start a casual fun conversation with me and try to keep the conversation going?"
+        role: "system",
+        content: gemmaBehaviour ?? this.defaultGemmaBehaviour
       }], 
       this.gemma
     );
+    this.currentModel = this.gemma;
   }
 
   async sendToAI(message: string, model: string) {
