@@ -207,12 +207,6 @@
 
   <div>
     <h3>AI Chat</h3>
-    <select #selectLLM>
-      <option selected [value]="''">Select a AI Model to chat with</option>
-      <option *ngFor="let model of llmModels" [value]="model">
-        {{ model }}
-      </option>
-    </select>
     <div style="width: 100%; height: 300px; border: 2px solid black; overflow: auto;" #chat>
       <div *ngFor="let msg of aiHistory">
         <p style="margin: 5px;">
@@ -231,7 +225,7 @@
       </p>
     </div>
     <input type="text" #aiChatMessage placeholder="Enter a message"/>
-    <button (click)="sendToAI(aiChatMessage.value, selectLLM.value)" [disabled]="loading">Send Message</button>
+    <button (click)="sendToAI(aiChatMessage.value)" [disabled]="loading">Send Message</button>
   </div>
 </main>
 <router-outlet />

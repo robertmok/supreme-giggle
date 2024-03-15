@@ -127,6 +127,25 @@ export class AppComponent {
         this.aiMessageBuffer = ""; //reset
       }
     });
+
+    this.aiConnection.on('ReceiveAiMessageLmStudio', (message: any) => {
+      console.log(message);
+      if (message) {
+        this.loading = false;
+      }
+      if (message && message.finishReason === null)
+      {
+        this.aiMessageBuffer += message.content;
+      }
+      else if (message && message.finishReason !== null)
+      {
+        this.aiHistory.push({
+          role: "assistant",
+          content: this.aiMessageBuffer
+        });
+        this.aiMessageBuffer = ""; //reset
+      }
+    });
   }
 
   async startConnection() {
@@ -306,18 +325,17 @@ export class AppComponent {
     }
   }
 
-  async sendToAI(message: string, model: string) {
+  async sendToAI(message: string) {
     if (this.loading === false) {
       try {
         this.loading = true;
-        let llmModel = model !== '' ? model : null;
         this.aiHistory.push(
           {
             role: "user",
             content: message
           }
         );
-        await this.aiConnection.invoke('SendAiMessage', this.aiHistory, llmModel);
+        await this.aiConnection.invoke('SendAiMessageLmStudio', message);
       } catch (err) {
         console.error(err);
       }
